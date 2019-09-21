@@ -36,6 +36,9 @@ import (
 func NewDiscoveryRESTMapper(c *rest.Config) (meta.RESTMapper, error) {
 	// Get a mapper
 	dc := discovery.NewDiscoveryClientForConfigOrDie(c)
+
+	// TODO(mszostok): here we have useful info about all supported groups and resource
+	// in api-server
 	gr, err := restmapper.GetAPIGroupResources(dc)
 	if err != nil {
 		return nil, err

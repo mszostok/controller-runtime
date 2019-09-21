@@ -118,6 +118,10 @@ type Options struct {
 	// will use for holding the leader lock.
 	LeaderElectionID string
 
+	// LeaderElectionLockType determines leader election lock type for holding
+	// the leader lock information.
+	LeaderElectionLockType leaderelection.LockType
+
 	// LeaseDuration is the duration that non-leader candidates will
 	// wait to force acquire leadership. This is measured against time of
 	// last observed ack. Default is 15 seconds.
@@ -245,10 +249,19 @@ func New(config *rest.Config, options Options) (Manager, error) {
 	}
 
 	// Create the resource lock to enable leader election)
+	if options.LeaderElectionLockType == leaderelection.UndefinedResourceLock { // this should be moved somehow into `setOptionsDefaults` func
+		lockType, err := leaderelection.GetPreferredLockType(mapper)
+		if err != nil {
+			return nil, err
+		}
+		options.LeaderElectionLockType = lockType
+	}
+
 	resourceLock, err := options.newResourceLock(config, recorderProvider, leaderelection.Options{
 		LeaderElection:          options.LeaderElection,
 		LeaderElectionID:        options.LeaderElectionID,
 		LeaderElectionNamespace: options.LeaderElectionNamespace,
+		LeaderElectionLockType:  options.LeaderElectionLockType,
 	})
 	if err != nil {
 		return nil, err
